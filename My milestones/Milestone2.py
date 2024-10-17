@@ -1,4 +1,4 @@
-from numpy import array, zeros, linspace, concatenate
+from numpy import array, zeros, linspace, concatenate, float64
 from numpy.linalg import norm
 import matplotlib.pyplot as plt
 
