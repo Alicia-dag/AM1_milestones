@@ -32,6 +32,8 @@ def RK4(U, dt, t, F):
     k4 = F(U + k3 * dt, t + dt/2)
     return U + (dt/6) * (k1 + 2*k2 + 2*k3 + k4)
 
+
+
 # Esquema implícito CRANK-NICKOLSON
 def Crank_Nickolson(U, dt, t, F): 
     def G(X):
@@ -78,13 +80,35 @@ def evaluate_convergence_rate(F, t, U0):
 
 ################################################### CÓDIGO ########################################################
 # Example usage
-t = linspace(0, 10, 100)
+t = linspace(0, 1000, 10)
 U0 = array([1, 0, 0, 1], dtype=float64)
 errors = evaluate_numerical_error(Kepler, t, U0)
 rates = evaluate_convergence_rate(Kepler, t, U0)
 
 
 ################################################# GRÁFICAS #########################################################
-print("Errors:", errors)
-print("Convergence Rates:", rates)
+# Gráfica de errores
+plt.figure(figsize=(10, 6))
+for scheme, error in errors.items():
+    plt.plot(t, error[:, 0], label=f'{scheme} (x)')
+    plt.plot(t, error[:, 1], label=f'{scheme} (y)')
+plt.yscale('log')
+plt.xlabel('t')
+#plt.xlim([0, 10])
+plt.ylabel('Error')
+plt.title('Numerical Errors for Different Schemes')
+plt.legend()
+plt.grid(True)
+plt.show()
 
+# Gráfica de convergence rates
+plt.figure(figsize=(10, 6))
+for scheme, rate in rates.items():
+    plt.plot(t[1:], rate[:, 0], label=f'{scheme} (x)')
+    plt.plot(t[1:], rate[:, 1], label=f'{scheme} (y)')
+plt.xlabel('t')
+plt.ylabel('Convergence Rate')
+plt.title('Convergence Rates for Different Schemes')
+plt.legend()
+plt.grid(True)
+plt.show()

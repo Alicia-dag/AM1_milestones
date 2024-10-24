@@ -59,7 +59,8 @@ def Euler_Inverso(U, dt, t, F):
     return newton(G, U)
 
 
-def Richardson(U, dt, t, F): #Extrapolación de Richardson
+# Extrapolación de Richardson
+def Richardson(U, dt, t, F): 
     U1 = Euler(U, dt/2, t, F)
     U2 = Euler(U1, dt/2, t, F)
     return U2 + (U2 - U1)/15
