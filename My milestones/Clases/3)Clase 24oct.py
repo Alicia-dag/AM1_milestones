@@ -88,7 +88,7 @@ def mesh_refinement(t1): # Cada función define las cosas como quiera, se puede 
     return t2
 
 
-# Defición de la función partición para un caso genéricoç
+# Defición de la función partición para un caso genérico
 def partition(a, b, N):
     t = zeros(N + 1) 
     for i in range (0, N+1):
@@ -118,7 +118,7 @@ def Cauchy_error(F, t, U0, Esquema):
 
 ################################################### CÓDIGO ########################################################
 # Separación equiespaciada de instantes de tiempo en los que calcular la solución
-t1 = partition(a = 0, b = 10*pi, N = 1000) # a es el tiempo inicial, b es el tiempo final, N es el número de intervalos
+t1 = partition(a = 0, b = 20*pi, N = 1000) # a es el tiempo inicial, b es el tiempo final, N es el número de intervalos
 
 # Llamadas
 U0 = array([1, 0])
@@ -141,7 +141,7 @@ U_EI, Error_EI = Cauchy_error(Oscilador, t1, array([1, 0]), Euler_Inverso)
 # print ("t2 = ", t2)
 
 ################################################# GRÁFICAS #########################################################
-# Gráfica de las solución
+# Gráfica de las todas soluciones
 plt.plot(t1, U_E[:, 0], label="Euler")
 plt.plot(t1, U_RK4[:, 0], label="RK4")
 plt.plot(t1, U_CN[:, 0], label="Crank-Nickolson")
@@ -149,6 +149,34 @@ plt.plot(t1, U_EI[:, 0], label="Euler Inverso")
 plt.plot(t1, Error_E[:, 0],  label="Error Euler")
 plt.plot(t1, Error_RK4[:, 0],  label="Error RK4")
 plt.plot(t1, Error_CN[:, 0],  label="Error CN")
+plt.plot(t1, Error_EI[:, 0],  label="Error EI")
+plt.legend()
+plt.xlabel("t")
+plt.show()
+
+# Gráfica de Euler y su error
+plt.plot(t1, U_E[:, 0], label="Euler")
+plt.plot(t1, Error_E[:, 0],  label="Error Euler")
+plt.legend()
+plt.xlabel("t")
+plt.show()
+
+# Gráfica de RK4 y su error
+plt.plot(t1, U_RK4[:, 0], label="RK4")
+plt.plot(t1, Error_RK4[:, 0],  label="Error RK4")
+plt.legend()
+plt.xlabel("t")
+plt.show()
+
+# Gráfica de Crank-Nickolson y su error
+plt.plot(t1, U_CN[:, 0], label="Crank-Nickolson")
+plt.plot(t1, Error_CN[:, 0],  label="Error CN")
+plt.legend()
+plt.xlabel("t")
+plt.show()
+
+# Gráfica de Euler Inverso y su error
+plt.plot(t1, U_EI[:, 0], label="Euler Inverso")
 plt.plot(t1, Error_EI[:, 0],  label="Error EI")
 plt.legend()
 plt.xlabel("t")
