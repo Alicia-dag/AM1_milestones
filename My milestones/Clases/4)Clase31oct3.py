@@ -178,14 +178,3 @@ plt.grid() #############
 #plt.axis('equal') ###################
 plt.ylim(-0.003,0.003)
 plt.show()
-
-# Gráfica comparación de posiciones
-plt.plot(linspace(0, T, N), E_Euler[:,0], label = 'Euler')
-#plt.plot(E_EulerI[:,0], N, label = 'Euler Inverso')
-plt.title('Comparación error de métodos numéricos')
-plt.xlabel('N')
-plt.ylabel('Error')
-plt.legend(loc='upper right')
-plt.grid() #############
-plt.axis('equal') ###################
-plt.show()
