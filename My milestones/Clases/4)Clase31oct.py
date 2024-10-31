@@ -5,18 +5,20 @@ import matplotlib.pyplot as plt
 
 ################################################## FUNCIONES #######################################################
 # Función con el punto y la derivada
-def Newton(F, x_0, Fp, tolerancia=1e-4, ):
+def Newton(F, x_0, Fprima = None, tol=1e-4, maxiter=50):
+    def Fp(x):
+        if Fprima == None:
+            delta = 1e-4
+            return(F (x +delta) - F(x - delta))/(2*delta)
+        else:
+            return Fprima(x)
+            
     xn = x_0
-    Error = tolerancia + 1 # Valor incial del error, grande
+    Error = tol + 1 # Valor incial del error, grande
+    iter = 0
     
-    
-    if Fp == None:
-        def FP():
-            return
-    
-    
-    while Error > tolerancia:
-        xn1 = xn - F(xn)/Fp(xn)
+    while Error > tol:
+        xn1 = xn - F(xn)/Fprima(xn)
         Error = abs(xn1 - xn)
         # print("xn =", xn, "xn1 - xn =", xn1 - xn)
         xn = xn1
@@ -52,3 +54,7 @@ def partition(a, b, N):
 Sol = Newton(F=jorge, x_0=10, Fp=jorgep, tolerancia=1e-8)
 print("La solución es:", Sol)
 print ("Residual = ", jorge(Sol))
+
+Sol2 = Newton(F=jorge, x_0=10, tolerancia=1e-8)
+print("La solución es:", Sol2)
+print ("Residual = ", jorge(Sol2))
