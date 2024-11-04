@@ -3,7 +3,6 @@ from numpy.linalg import norm
 from scipy.optimize import newton
 import matplotlib.pyplot as plt
 
-
 ############################################################################
 ######################## CONDICIONES INICIALES #############################
 ############################################################################
