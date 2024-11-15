@@ -1,20 +1,26 @@
-from numpy import array, zeros, linspace, concatenate
-from numpy.linalg import norm
-from Physics import Kepler
+from numpy import zeros, float64
 
-# Problema CAUCHY: consiste en obtener la solución de un problema de CI dada una CI y un esquema temporal
-# Imputs:
-#           Esquema temporal
-#           Función F(U,t)
-#           Condición inicial
-#           Partición temporal
-# Output:
-#           Solución para todo instante temporal y para todo componente
-def Cauchy(Esquema, F, U0, t): 
-    N = len(t)-1  # Por como se empieza a contar en Python
-    U = zeros((N+1,len(U0)))
+
+
+# CAUCHY PROBLEM
+def Cauchy_problem(F, t, U0, Esquema):  
+    '''''''''''
+    Problema CAUCHY: consiste en obtener la solución de un problema de CI dada una CI y un esquema temporal
+    INPUTS:
+        - Esquema(U, F, t): función que representa el esquema numérico a utilizar
+        - F(U,t): función a resolver
+        - U0: vector de condiciones iniciales
+        - t: partición temporal
     
+    OUTPUT:
+        - U: Solución para todo instante temporal y para todo componente
+    '''''''''''
+    
+    N =  len(t)-1
+    Nv = len(U0)
+    U = zeros( (N+1, Nv), dtype=float64 ) 
     U[0,:] = U0
-    for n in range(0,N):
-        U[n+1,:] = Esquema ( Kepler, U[n,:], t[n+1]-t[n], t[n] )
-    return
+    
+    for n in range(N): 
+        U[n+1,:] = Esquema( U[n, :], t[n+1] - t[n], t[n],  F ) 
+    return U

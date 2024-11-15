@@ -1,3 +1,4 @@
+# Como el milestone 3 pero con la parte de diferencia entre partition y linspace 
 from numpy import array, zeros, linspace, concatenate, float64, pi
 import matplotlib.pyplot as plt
 from numpy.linalg import norm
@@ -46,7 +47,9 @@ def Cauchy_error(F, t, U0, Esquema):
 
 ################################################### CÓDIGO ########################################################
 # Separación equiespaciada de instantes de tiempo en los que calcular la solución
-t1 = Partition(a = 0, b = 20*pi, N = 1000)
+t1 = Partition(a = 0, b = 20*pi, N = 1000) # a es el tiempo inicial, b es el tiempo final, N es el número de intervalos
+# t0 = 0
+# t = linspace(t0, tf, N+1)
 
 # Llamadas
 U0 = array([1, 0])
@@ -55,11 +58,18 @@ U_RK4, Error_RK4 = Cauchy_error(Oscilador, t1, array([1, 0]), RK4)
 U_CN, Error_CN = Cauchy_error(Oscilador, t1, array([1, 0]), Crank_Nickolson)
 U_EI, Error_EI = Cauchy_error(Oscilador, t1, array([1, 0]), Euler_Inverso)
 
-# Convergencia
+# # Verificación de que linspace y Partition NO es lo mismo, lo mismo sería con linspace(a, b, N+1)
+# a, b = 0, 1
+# N = 100
+# t = linspace(a, b, N)
+# print ("t1 = ", t)
+# t = Partition(a, b, N)
+# print ("t2 = ", t)
 
-
-
-
+# t1 = Partition (a, b, N)
+# print ("t1 = ", t1)
+# t2 = Partition (a, b, N)
+# print ("t2 = ", t2)
 
 
 ################################################# GRÁFICAS #########################################################
