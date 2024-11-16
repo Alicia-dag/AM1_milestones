@@ -36,10 +36,10 @@ U_CN, Error_CN = Schemes_error(U0, Oscilador, Cauchy_problem, Crank_Nickolson, t
 U_EI, Error_EI = Schemes_error(U0, Oscilador, Cauchy_problem, Euler_Inverso, t1)
 
 # Convergencia
-logN_E, logE_E = Convergence(U0, Kepler, Schemes_error, Cauchy_problem, Euler, t1)
-logN_RK4, logE_RK4 = Convergence(U0, Kepler, Schemes_error, Cauchy_problem, RK4, t1)
-logN_CN, logE_CN = Convergence(U0, Kepler, Schemes_error, Cauchy_problem, Crank_Nickolson, t1)
-logN_EI, logE_EI = Convergence(U0, Kepler, Schemes_error, Cauchy_problem, Euler_Inverso, t1)
+logN_E, logE_E = Convergence(U0, Oscilador, Schemes_error, Cauchy_problem, Euler, t1)
+logN_RK4, logE_RK4 = Convergence(U0, Oscilador, Schemes_error, Cauchy_problem, RK4, t1)
+logN_CN, logE_CN = Convergence(U0, Oscilador, Schemes_error, Cauchy_problem, Crank_Nickolson, t1)
+logN_EI, logE_EI = Convergence(U0, Oscilador, Schemes_error, Cauchy_problem, Euler_Inverso, t1)
 
 plt.axis('equal') 
 plt.xlabel('logN')
