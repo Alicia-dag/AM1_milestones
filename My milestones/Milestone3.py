@@ -1,10 +1,8 @@
-from numpy import array, zeros, linspace, concatenate, float64, pi
+from numpy import array, zeros, pi
 import matplotlib.pyplot as plt
-from numpy.linalg import norm
-from scipy.optimize import newton # Import Newton Method
 from Modules.Physics import Kepler, Oscilador
 from Modules.NumericalSchemes import Euler, RK4, Crank_Nickolson, Euler_Inverso
-from Modules.Functions import Mesh_Refinement, Partition, Problem_Error, Problem_Error_Convergencia, Convergencia
+from Modules.Functions import Mesh_Refinement, Partition, Schemes_error, Convergence
 from Modules.CauchyProblem import Cauchy_problem
 
 
@@ -23,83 +21,98 @@ N = 2000
 
 
 ################################################# FUNCIONES #######################################################
-# Extrapolación de Richardson
-def Cauchy_error(F, t, U0, Esquema):
-    N = len(t) - 1
-    a = t[0]
-    b = t[N]
-    
-    Error = zeros((N+1, len(U0)))
-    
-    t1 = t
-    t2 = Partition (a, b, 2*N)
-    
-    U_1 = Cauchy_problem (F, t1, U0, Esquema) # Solución del problema de Cauchy_problem con la malla original
-    U_2 = Cauchy_problem (F, t2, U0, Esquema) # Solución del problema de Cauchy_problem con la malla modificada (más fina), es decir, con una malla refinada
-    
-    # Para calcular el error se hace la resta, pero un vector no se puede restar de otro si uno mide N+1 y el otro N, por eso se hace la resta en los nodos pares
-    for i in range (0, N+1): 
-        Error[i, :] = U_2[2*i, :] - U_1[i, :] # en este caso los dos puntitos significan: para todas las variables
-        
-    return U_1, Error
+
 
 
 ################################################### CÓDIGO ########################################################
 # Separación equiespaciada de instantes de tiempo en los que calcular la solución
 t1 = Partition(a = 0, b = 20*pi, N = 1000)
 
-# Llamadas
+# Error
 U0 = array([1, 0])
-U_E, Error_E = Cauchy_error(Oscilador, t1, array([1, 0]), Euler)
-U_RK4, Error_RK4 = Cauchy_error(Oscilador, t1, array([1, 0]), RK4)
-U_CN, Error_CN = Cauchy_error(Oscilador, t1, array([1, 0]), Crank_Nickolson)
-U_EI, Error_EI = Cauchy_error(Oscilador, t1, array([1, 0]), Euler_Inverso)
+U_E, Error_E = Schemes_error(U0, Oscilador, Cauchy_problem, Euler, t1)
+U_RK4, Error_RK4 = Schemes_error(U0, Oscilador, Cauchy_problem, RK4, t1)
+U_CN, Error_CN = Schemes_error(U0, Oscilador, Cauchy_problem, Crank_Nickolson, t1)
+U_EI, Error_EI = Schemes_error(U0, Oscilador, Cauchy_problem, Euler_Inverso, t1)
 
 # Convergencia
+logN_E, logE_E = Convergence(U0, Kepler, Schemes_error, Cauchy_problem, Euler, t1)
+logN_RK4, logE_RK4 = Convergence(U0, Kepler, Schemes_error, Cauchy_problem, RK4, t1)
+logN_CN, logE_CN = Convergence(U0, Kepler, Schemes_error, Cauchy_problem, Crank_Nickolson, t1)
+logN_EI, logE_EI = Convergence(U0, Kepler, Schemes_error, Cauchy_problem, Euler_Inverso, t1)
 
-
-
-
-
+plt.axis('equal') 
+plt.xlabel('logN')
+plt.ylabel('logE')
+plt.plot(logN_E, logE_E, '-b')
+plt.show()
 
 ################################################# GRÁFICAS #########################################################
-# Gráfica de las todas soluciones
-plt.plot(t1, U_E[:, 0], label="Euler")
-plt.plot(t1, U_RK4[:, 0], label="RK4")
-plt.plot(t1, U_CN[:, 0], label="Crank-Nickolson")
-plt.plot(t1, U_EI[:, 0], label="Euler Inverso")
-plt.plot(t1, Error_E[:, 0],  label="Error Euler")
-plt.plot(t1, Error_RK4[:, 0],  label="Error RK4")
-plt.plot(t1, Error_CN[:, 0],  label="Error CN")
-plt.plot(t1, Error_EI[:, 0],  label="Error EI")
-plt.legend()
-plt.xlabel("t")
-plt.show()
+# # Gráfica de las todas soluciones
+# plt.plot(t1, U_E[:, 0], label="Euler")
+# plt.plot(t1, U_RK4[:, 0], label="RK4")
+# plt.plot(t1, U_CN[:, 0], label="Crank-Nickolson")
+# plt.plot(t1, U_EI[:, 0], label="Euler Inverso")
+# plt.plot(t1, Error_E[:, 0],  label="Error Euler")
+# plt.plot(t1, Error_RK4[:, 0],  label="Error RK4")
+# plt.plot(t1, Error_CN[:, 0],  label="Error CN")
+# plt.plot(t1, Error_EI[:, 0],  label="Error EI")
+# plt.legend()
+# plt.xlabel("t")
+# plt.show()
 
-# Gráfica de Euler y su error
-plt.plot(t1, U_E[:, 0], label="Euler")
-plt.plot(t1, Error_E[:, 0],  label="Error Euler")
-plt.legend()
-plt.xlabel("t")
-plt.show()
+# # Gráfica de Euler y su error
+# plt.plot(t1, U_E[:, 0], label="Euler")
+# plt.plot(t1, Error_E[:, 0],  label="Error Euler")
+# plt.legend()
+# plt.xlabel("t")
+# plt.show()
 
-# Gráfica de RK4 y su error
-plt.plot(t1, U_RK4[:, 0], label="RK4")
-plt.plot(t1, Error_RK4[:, 0],  label="Error RK4")
-plt.legend()
-plt.xlabel("t")
-plt.show()
+# # Gráfica de RK4 y su error
+# plt.plot(t1, U_RK4[:, 0], label="RK4")
+# plt.plot(t1, Error_RK4[:, 0],  label="Error RK4")
+# plt.legend()
+# plt.xlabel("t")
+# plt.show()
 
-# Gráfica de Crank-Nickolson y su error
-plt.plot(t1, U_CN[:, 0], label="Crank-Nickolson")
-plt.plot(t1, Error_CN[:, 0],  label="Error CN")
-plt.legend()
-plt.xlabel("t")
-plt.show()
+# # Gráfica de Crank-Nickolson y su error
+# plt.plot(t1, U_CN[:, 0], label="Crank-Nickolson")
+# plt.plot(t1, Error_CN[:, 0],  label="Error CN")
+# plt.legend()
+# plt.xlabel("t")
+# plt.show()
 
-# Gráfica de Euler Inverso y su error
-plt.plot(t1, U_EI[:, 0], label="Euler Inverso")
-plt.plot(t1, Error_EI[:, 0],  label="Error EI")
-plt.legend()
-plt.xlabel("t")
-plt.show()
+# # Gráfica de Euler Inverso y su error
+# plt.plot(t1, U_EI[:, 0], label="Euler Inverso")
+# plt.plot(t1, Error_EI[:, 0],  label="Error EI")
+# plt.legend()
+# plt.xlabel("t")
+# plt.show()
+
+# # Gráfica de convergencia de Euler
+#     plt.plot(logN_E, logE_E, '-b')
+#     plt.axis('equal') 
+#     plt.xlabel('logN_E')
+#     plt.ylabel('logE_E')
+#     plt.show()
+
+# # Gráfica de convergencia de RK4
+#     plt.plot(logN_RK4, logE_RK4, '-b')
+#     plt.axis('equal') 
+#     plt.xlabel('logN_RK4')
+#     plt.ylabel('logE_RK4')
+#     plt.show()
+    
+# # Gráfica de convergencia de Cranck-Nickolson
+#     plt.plot(logN_CN, logE_CN, '-b')
+#     plt.axis('equal') 
+#     plt.xlabel('logN_CN')
+#     plt.ylabel('logE_CN')
+#     plt.show()
+
+# # Gráfica de convergencia de Euler Inverso
+#     plt.plot(logN_E, logE_E, '-b')
+#     plt.axis('equal') 
+#     plt.xlabel('logN_EI')
+#     plt.ylabel('logE_EI')
+#     plt.show()
