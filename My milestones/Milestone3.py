@@ -77,8 +77,8 @@ def Convergence(U0, F, Error, Problema, Esquema, t):
     
     for i in range(np):
         U, Er = Error(U0, F, Problema, Esquema, t1)  # Asumiendo que Error devuelve U_1 y Error
-        logE[i] = log10 ( norm( Er[N, :]  ) ) 
-        logN[i] = log10( float(N) )
+        logE[i] = log10(norm(Er[N, :])) 
+        logN[i] = log10(float(N))
         N = 2*N
         t1 = linspace(t[0], t[-1], N+1)  
         

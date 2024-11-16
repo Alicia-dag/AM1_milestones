@@ -1,4 +1,4 @@
-from numpy import zeros, linspace, log10
+from numpy import zeros, linspace, log10, polyfit
 from numpy.linalg import norm
 
 
@@ -80,22 +80,28 @@ def Convergence(U0, F, Error, Problema, Esquema, t):
         - F: Función a resolver
         - Error(U0, F, Problema, Esquema, t): Función que devuelve un vector con el error de un esquema en cada paso temporal
         - Esquema: Esquema temporal a resolver
-        - t: partición temporal 
+        - t: partición temporal
+    OUTPUTS:
+        - logN:  vector for the different number of time partitions 
+        - logE:  error for each time partition      
+        - Order:  order of Error of the temporal scheme 
     '''''''''''
     
-    np = 15 # Número de puntos de la regresión 
+    np = 6  # Número de puntos de la regresión, si se sube más tarda MUCHO en converger
     logE = zeros(np)
     logN = zeros(np)
-    N = len(t-1)
+    N = len(t) - 1
     t1 = t
     
     for i in range(np):
-        
-        E = Error(U0, F, Problema, Esquema, t1)
-        logE.append(E[-1])
-        logE[i] = log10(norm(E[-1,:]))
-        logN[i] = log10(N)
+        U, Er = Error(U0, F, Problema, Esquema, t1)  # Asumiendo que Error devuelve U_1 y Error
+        logE[i] = log10(norm(Er[N, :])) 
+        logN[i] = log10(float(N))
         N = 2*N
-        t1 = linspace(t[0], t[-1], N+1)    
-
-    return logN, logE
+        t1 = linspace(t[0], t[-1], N+1)  
+        
+    y = logE[ logE > -12 ]
+    x = logN[ 0:len(y) ]
+    Order, b = polyfit(x, y, 1) # Regresión lineal para encontrar la pendiente de la recta que mejor se ajusta a los datos
+    # print("Order =", Order, "b =", b)
+    return logN, logE, Order

@@ -1,53 +1,90 @@
-from numpy import array, zeros, linspace, concatenate
+from numpy import zeros, linspace, transpose, abs, float64
 import matplotlib.pyplot as plt
-from numpy.linalg import norm
-from scipy.optimize import newton
 from Modules import CauchyProblem
-from Modules import Euler, RK4, CrankNicholson, Euler_Inverso
-from Modules import Physics
+from Modules.NumericalSchemes import Euler, RK4, Crank_Nickolson, Euler_Inverso
+from Modules.Physics import Oscilador
 
-#################################################### DATOS ########################################################
-# Condiciones iniciales
-x0 = 1.
-y0 = 0.
-vx0 = 0.
-vy0 = 1.
-
-# Variables de tiempo y número de intervalos 
-tf = 7
-N = 2000
 
 ################################################# FUNCIONES #######################################################
-def LeapFrog(f, x0, y0, vx0, vy0, tf, N):
-    dt = tf / N
-    t = linspace(0, tf, N+1)
-    x = zeros(N+1)
-    y = zeros(N+1)
-    vx = zeros(N+1)
-    vy = zeros(N+1)
+# REGIÓN DE ESTABILIDAD
+def Region_Estabilidad(Scheme, N, x0, xf, y0, yf): 
+    '''''''''''
+    INPUTS:
+        - Scheme: esquema numérico a utilizar
+        - N: número de puntos en la malla
+        - x0, xf: intervalo en x
+        - y0, yf: intervalo en y
+    '''''''''''
     
-    x[0] = x0
-    y[0] = y0
-    vx[0] = vx0
-    vy[0] = vy0
+    x = linspace(x0, xf, N) # Malla en x
+    y = linspace(y0, yf, N) # Malla en y
+    rho =  zeros( (N, N),  dtype=float64) # Matriz de estabilidad
+    F = lambda u, t: w*u # Función anónima que representa la ecuación diferencial a resolver
     
-    # First step using Euler method to start Leap-Frog
-    x[1] = x[0] + vx[0] * dt
-    y[1] = y[0] + vy[0] * dt
-    ax, ay = f(x[0], y[0], vx[0], vy[0])
-    vx[1] = vx[0] + ax * dt
-    vy[1] = vy[0] + ay * dt
-    
-    for n in range(1, N):
-        ax, ay = f(x[n], y[n], vx[n], vy[n])
-        x[n+1] = x[n-1] + 2 * vx[n] * dt
-        y[n+1] = y[n-1] + 2 * vy[n] * dt
-        vx[n+1] = vx[n-1] + 2 * ax * dt
-        vy[n+1] = vy[n-1] + 2 * ay * dt
-    
-    return t, x, y, vx, vy
+    for i in range(N): 
+        for j in range(N):
+            w = complex(x[i], y[j]) # Número complejo
+            r = Scheme(1., 1., 0., F) # 1. = paso temporal inicial, 1. = valor inicial solución, 0. = tiempo inicial, F = función a resolver
+            rho[i, j] = abs(r)
+    return rho, x, y  
 
-################################################### CÓDIGO ########################################################
+# REGIÓN DE ESTABILIDAD DE EULER
+def Region_Estabilidad_Euler(N, x0, xf, y0, yf):
+    w = linspace(x0, xf, N) + 1j * linspace(y0, yf, N)[:, None]
+    r = 1 + w
+    return abs(r) <= 1
 
 
-################################################# GRÁFICAS #########################################################
+# REGIÓN DE ESTABILIDAD DE RK4
+def Region_Estabilidad_RK4(N, x0, xf, y0, yf):
+    w = linspace(x0, xf, N) + 1j * linspace(y0, yf, N)[:, None]
+    r = 1 + w + w**2/2 + w**3/6 + w**4/24
+    return abs(r) <= 1
+
+# REGIÓN DE ESTABILIDAD DE CRANK-NICKOLSON
+def Region_Estabilidad_Crank_Nickolson(N, x0, xf, y0, yf):
+    w = linspace(x0, xf, N) + 1j * linspace(y0, yf, N)[:, None]
+    r = (1 + w / 2) / (1 - w / 2)
+    return abs(r) <= 1
+
+# REGIÓN DE ESTABILIDAD DE EULER INVERSO
+def Region_Estabilidad_Euler_Inverso(N, x0, xf, y0, yf):
+    w = linspace(x0, xf, N) + 1j * linspace(y0, yf, N)[:, None] 
+    r = 1 / (1 - w)
+    return abs(r) <= 1
+
+
+############################################ CÓDIGO & GRÁFICAS ####################################################
+# Graficar las regiones de estabilidad
+plt.figure(figsize=(18, 6))
+
+# Región de estabilidad de Euler
+plt.subplot(1, 4, 1)
+plt.imshow(Region_Estabilidad_Euler(400, -3, 3, -3, 3), extent=[-3, 3, -3, 3], origin='lower', cmap='Greys')
+plt.title('Región de estabilidad de Euler')
+plt.xlabel('Re(r)')
+plt.ylabel('Im(r)')
+
+# Región de estabilidad de RK4
+plt.subplot(1, 4, 2)
+plt.imshow(Region_Estabilidad_RK4(400, -3, 3, -3, 3), extent=[-3, 3, -3, 3], origin='lower', cmap='Greys')
+plt.title('Región de estabilidad de RK4')
+plt.xlabel('Re(r)')
+plt.ylabel('Im(r)')
+
+# Región de estabilidad de Crank-Nicolson
+plt.subplot(1, 4, 3)
+plt.imshow(Region_Estabilidad_Crank_Nickolson(400, -3, 3, -3, 3), extent=[-3, 3, -3, 3], origin='lower', cmap='Greys')
+plt.title('Región de estabilidad de Crank-Nicolson')
+plt.xlabel('Re(r)')
+plt.ylabel('Im(r)')
+
+# Región de estabilidad de Euler Inverso
+plt.subplot(1, 4, 4)
+plt.imshow(Region_Estabilidad_Euler_Inverso(400, -3, 3, -3, 3), extent=[-3, 3, -3, 3], origin='lower', cmap='Greys')
+plt.title('Región de estabilidad de Euler Inverso')
+plt.xlabel('Re(r)')
+plt.ylabel('Im(r)')
+
+plt.tight_layout()
+plt.show()
