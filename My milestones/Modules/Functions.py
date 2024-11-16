@@ -90,7 +90,9 @@ def Convergence(U0, F, Error, Problema, Esquema, t):
     t1 = t
     
     for i in range(np):
+        
         E = Error(U0, F, Problema, Esquema, t1)
+        logE.append(E[-1])
         logE[i] = log10(norm(E[-1,:]))
         logN[i] = log10(N)
         N = 2*N
