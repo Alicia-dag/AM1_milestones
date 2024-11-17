@@ -1,4 +1,4 @@
-from numpy import zeros, linspace, log10, polyfit
+from numpy import zeros, linspace, log10, polyfit, float64
 from numpy.linalg import norm
 
 
@@ -105,3 +105,27 @@ def Convergence(U0, F, Error, Problema, Esquema, t):
     Order, b = polyfit(x, y, 1) # Regresión lineal para encontrar la pendiente de la recta que mejor se ajusta a los datos
     # print("Order =", Order, "b =", b)
     return logN, logE, Order
+
+
+
+# REGIÓN DE ESTABILIDAD
+def Region_Estabilidad(Scheme, N, x0, xf, y0, yf): 
+    '''''''''''
+    INPUTS:
+        - Scheme: esquema numérico a utilizar
+        - N: número de puntos en la malla
+        - x0, xf: intervalo en x
+        - y0, yf: intervalo en y
+    '''''''''''
+    
+    x = linspace(x0, xf, N) # Malla en x
+    y = linspace(y0, yf, N) # Malla en y
+    rho =  zeros( (N, N),  dtype=float64) # Matriz de estabilidad
+    F = lambda u, t: w*u # Función anónima que representa la ecuación diferencial a resolver
+    
+    for i in range(N): 
+        for j in range(N):
+            w = complex(x[i], y[j]) # Número complejo
+            r = Scheme(1., 1., 0., F) # 1. = paso temporal inicial, 1. = valor inicial solución, 0. = tiempo inicial, F = función a resolver
+            rho[i, j] = abs(r)
+    return rho, x, y  
