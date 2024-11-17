@@ -1,5 +1,6 @@
 from numpy import array, reshape, zeros, linspace
 from scipy.integrate import odeint
+from numpy.linalg import norm
 import matplotlib.pyplot as plt
 from Modules.CauchyProblem import Cauchy_problem
 from Modules.NumericalSchemes import RK4
