@@ -63,18 +63,17 @@ def N_Body_Problem(U, t, Nb, Nc):
     
     dvdt[:,:] = 0
     
-    for i in range (1, Nb):
+    for i in range (Nb):
         drdt[i,:] = v[i,:]
-        for j in range (1, Nc):
-            for j in range(Nb): 
-                if j != i:  
-                    d = r[j,:] - r[i,:]
-                    dvdt[i,:] = dvdt[i,:] +  d[:] / norm(d)**3 
+        for j in range (Nc): 
+            if j != i:  
+                d = r[j,:] - r[i,:]
+                dvdt[i,:] = dvdt[i,:] +  d[:] / norm(d)**3
     return Fs
 
 
 def F_N_Body_Problem(t, U):
-    return N_Body_Problem(t, U, Nb, Nc)
+    return N_Body_Problem(U, t, Nb, Nc)
 
 
 
