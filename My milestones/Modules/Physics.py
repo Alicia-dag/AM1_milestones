@@ -1,4 +1,5 @@
-from numpy import array
+from numpy import array, reshape, zeros
+from numpy.linalg import norm
 
 
 
@@ -64,3 +65,39 @@ def Newton(F, x_0, Fprima = None, tol = 1e-8, maxiter=50):
         print('Error:', Error)
     print('Número de iteraciones: ', iter)
     return xn
+
+
+
+
+# Función para el "N body problem"
+def N_Body_Problem(U, t, Nb, Nc):
+    '''''''''''
+    INPUTS:
+        - U: vector de condiciones iniciales
+        - t: tiempo
+        - Nb: número de cuerpos
+        - Nc: número de coordenadas
+    '''''''''''
+    
+    pu = reshape (U, (Nb, Nc, 2))
+    r = reshape (pu[:, :, 0], (Nb, Nc)) # Posiciones en pu
+    v = reshape (pu[:, :, 1], (Nb, Nc)) # Velocidades en pu
+    
+    Fs = zeros(len(U))
+    pFs = reshape (Fs, (Nb, Nc, 2)) 
+    
+    drdt = reshape (pFs[:, :, 0], (Nb, Nc)) # Derivadas de r en pFs
+    dvdt = reshape (pFs[:, :, 1], (Nb, Nc)) # Derivadas de v en pFs
+    
+    dvdt[:,:] = 0
+    
+    for i in range (Nb):
+        drdt[i,:] = v[i,:]
+        for j in range (Nb): 
+            if j != i:  
+                d = r[j,:] - r[i,:]
+                dvdt[i,:] = dvdt[i,:] +  d[:] / norm(d)**3
+    return Fs
+
+def F_N_Body_Problem(U, t, Nb, Nc):
+    return N_Body_Problem(U, t, Nb, Nc)
