@@ -18,45 +18,35 @@ def Initial_conditions(Nb, Nc):
     r0 = reshape(U1[:, :, 0], (Nb, Nc))
     v0 = reshape(U1[:, :, 1], (Nb, Nc))
 
-    # # Cuerpo 1
-    # r0[0,:] = [1, 0, 0]
-    # v0[0,:] = [0, 0.4, 0]
+    # Cuerpo 1
+    r0[0,:] = [1, 0, 0]
+    v0[0,:] = [0, 0.4, 0]
 
-    # # Cuerpo 2
-    # # r0[1,:] = [-0.4, 0, 0]
-    # # v0[1,:] = [0, -1, 0]
-    # r0[1,:] = [ -1, 0, 0]
-    # v0[1,:] = [ 0, -0.4, 0] 
+    # Cuerpo 2
+    # r0[1,:] = [-0.4, 0, 0]
+    # v0[1,:] = [0, -1, 0]
+    r0[1,:] = [ -1, 0, 0]
+    v0[1,:] = [ 0, -0.4, 0] 
 
-    # # Cuerpo 3
-    # # r0[2,:] = [0, -1, 0]
-    # # v0[2,:] = [0.4, 0, 0]
-    # r0[2, :] = [ 0, 1, 0 ] 
-    # v0[2, :] = [ -0.4, 0., 0. ] 
+    # Cuerpo 3
+    # r0[2,:] = [0, -1, 0]
+    # v0[2,:] = [0.4, 0, 0]
+    r0[2, :] = [ 0, 1, 0 ] 
+    v0[2, :] = [ -0.4, 0., 0. ] 
 
-    # # Cuerpo 4
-    # # r0[3,:] = [0, 1, 0]
-    # # v0[3,:] = [-0.4, 0, 0]
-    # r0[3, :] = [ 0, -1, 0 ] 
-    # v0[3, :] = [ 0.4, 0., 0. ] 
+    # Cuerpo 4
+    # r0[3,:] = [0, 1, 0]
+    # v0[3,:] = [-0.4, 0, 0]
+    r0[3, :] = [ 0, -1, 0 ] 
+    v0[3, :] = [ 0.4, 0., 0. ] 
 
-    # # Cuerpo 5
-    # r0[4,:] = [0, 0, 1] 
-    # v0[4,:] = [0, 0.4, 0]
+    # Cuerpo 5
+    r0[4,:] = [0, 0, 1] 
+    v0[4,:] = [0, 0.4, 0]
     
-    # # Cuerpo 6
-    # r0[5,:] = [0, 0, -1] 
-    # v0[5,:] = [0, 0, 0.4]
-    
-    # Parámetros para la configuración hexagonal (para que quede bonito)
-    radius = 1.5  # Radio del hexágono
-    angular_velocity = 0.3  # Velocidad angular para un movimiento circular
-
-    for i in range(Nb):
-        angle = 2 * pi * i / Nb  # Ángulo para distribuir los cuerpos
-        r0[i, :] = [radius * cos(angle), radius * sin(angle), 0]
-        v0[i, :] = [-radius * sin(angle) * angular_velocity, 
-                     radius * cos(angle) * angular_velocity, 0]
+    # Cuerpo 6
+    r0[5,:] = [0, 0, -1] 
+    v0[5,:] = [0, 0, 0.4]
     return U0 
 
 
@@ -136,17 +126,4 @@ for i in range(Nb):
     plt.plot(  r[:, i, 0], r[:, i, 1] )
 plt.axis('equal')
 plt.grid()
-plt.show()
-
-# Representacion de resultados (en 3 dimensiones)
-Us = reshape(U, (Nb, Nc, 2, N+1))
-r = reshape(Us[:, :, 0, :], (Nb, Nc, N+1))
-fig = plt.figure()
-ax = fig.add_subplot(111, projection='3d')
-for i in range(Nb):
-    ax.plot3D(r[i, 0, :], r[i, 1, :], r[i, 2, :], label=f'Cuerpo {i+1}')
-ax.set_xlabel('X')
-ax.set_ylabel('Y')
-ax.set_zlabel('Z')
-ax.legend()
 plt.show()
