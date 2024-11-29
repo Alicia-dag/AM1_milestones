@@ -97,6 +97,7 @@ def F_N_Body_Problem(U, t):
     
     return N_Body_Problem(U, t, Nb, Nc)
 
+# Nc y Nb son global. Meter funcion para la llamada para que no haya globales
 
 ################################################### CÓDIGO ########################################################
 # Definicion de los parametros de integracion
