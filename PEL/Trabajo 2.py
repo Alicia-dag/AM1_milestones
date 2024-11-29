@@ -1,16 +1,15 @@
-from sympy import symbols, solve, Min
-
+from sympy import symbols, solve, Min, Eq
 
 
 #############################################################################################################################################
 ############################################################# DATOS DEL TRABAJO #############################################################
 #############################################################################################################################################
 # Propiedades de las sustancias
-M_H2 = 2.016  # Masa molar del hidrógeno [g/kmol]
+M_H2 = 2.016  # Masa molar del hidrógeno [kg/kmol]
 M_H2 = M_H2 / 1000  # Masa molar del hidrógeno [kg/mol]
-M_O2 = 31.998  # Masa molar del oxígeno [gk/mol]
+M_O2 = 31.998  # Masa molar del oxígeno [kg/mol]
 M_O2 = M_O2 / 1000  # Masa molar del oxígeno [kg/mol]
-M_H2O = 18.015  # Masa molar del agua [g/kmol]
+M_H2O = 18.015  # Masa molar del agua [kg/mol]
 M_H2O = M_H2O / 1000  # Masa molar del agua [kg/mol]
 
 Cp_H2 = 36.11 # Capacidad calorífica del hidrógeno [J/(mol*K)]
@@ -19,7 +18,7 @@ Cp_H2O = 54.32 # Capacidad calorífica del agua [J/(mol*K)]
 
 delta_f_H2 = 0 # Entalpía de formación del hidrógeno [J/mol]
 delta_f_O2 = 0 # Entalpía de formación del oxígeno [J/mol]
-delta_f_H2O = -241818 # Entalpía de formación del agua [J/mol]
+delta_f_H2O = 241818 # Entalpía de formación del agua [J/mol]
 
 rho_H2 = 1140 # Densidad del hidrógeno [kg/m3]
 rho_O2 = 71 # Densidad del oxígeno [kg/m3]
@@ -138,14 +137,20 @@ print("La mezcla seleccionada es: ", tipo_mezcla_PC)
 Cp_prod = (a * Cp_H2O + b * Cp_O2 - c * Cp_H2) / (a + b + c) # Capacidad calorífica de los productos [J/(mol*K)]
 Mp_prod = (a * M_H2O + b * M_O2 - c * M_H2) / (a + b + c) # Masa molar de los productos [kg/mol]
 delta_f_prod = a * delta_f_H2O + b * delta_f_O2 - c * delta_f_H2 # Entalpía de formación de los productos [J/mol]
-Q_comb_PC = -delta_f_prod * (1 + 1 / OF_e) # Calor de reacción [J/mol]
+Q_comb_PC = - delta_f_prod * (1 + 1 / OF_e) # Calor de reacción [J/mol]
 
 
 # Ecuación de la energía y cálculo de "x" y OF_opt en cada siutación
 Tc_PC = T_t_in_max
-Cp_prod = Cp_prod / Mp_prod # Capacidad calorífica de los productos [J/(kg*K)]
-Q_comb_PC = (1 + OF) / (Min(OF , OF_e)) * Cp_prod * (Tc_PC - T_ref)
-x_solution = solve(Q_comb_PC, x)
-OF_opt = (x_solution[0] * M_O2) / M_H2
-print("El valor de x es: ", x_solution[0]) 
+if tipo_mezcla_PC == tipo_mezcla_PC_valores[0]:
+    (1 + OF) / OF_e * Cp_prod * (Tc_PC - T_ref) - Q_comb_PC == 0
+    residual = Eq ((1 + OF) / OF_e * Cp_prod * (Tc_PC - T_ref) - Q_comb_PC, 0)
+    x_solution = solve(residual, x)
+elif tipo_mezcla_PC == tipo_mezcla_PC_valores[1]:
+    (1 + OF) / OF * Cp_prod * (Tc_PC - T_ref) - Q_comb_PC == 0
+    residual = Eq ((1 + OF) / OF * Cp_prod * (Tc_PC - T_ref) - Q_comb_PC, 0)
+    x_solution = solve(residual, x)
+print(x_solution)
+OF_opt = (x_solution[1] * M_O2) / M_H2
+print("El valor de x es: ", x_solution[1]) 
 print("El valor de OF_opt es: ", OF_opt)
