@@ -1,6 +1,9 @@
-from sympy import symbols, solve, Min, Eq
+from sympy import symbols, solve, Min, Eq, N
 from scipy.optimize import fsolve
 from numpy import sqrt
+import numpy as arange
+import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
 
 
 #############################################################################################################################################
@@ -28,8 +31,8 @@ rho_H2O = 1000 # Densidad del agua [kg/m3]
 
 
 # Datos generales
-Empuje = 50000 # [kg]
-Empuje = E * 9.81 # [N]
+Empuje_SL = 50000 # [kg]
+Empuje_SL = Empuje_SL * 9.81 # [N]
 p_adapt = 40000 # [Pa]
 
 # Datos línea LH2
@@ -79,6 +82,7 @@ x = symbols('x')
 
 # Relación estequiométrica
 OF_PC_st = 0.5 * (M_O2 / M_H2) # Relación estequiométrica [adim]
+OF_CC_st = 0.5 * (M_O2 / M_H2) # Relación estequiométrica [adim]
 
 
 # Cálculos de las popiedades químicas según el tipo de mezcla: H2 + x * O2 -> a * H2O + b * H2 + c * O2 + Q
@@ -286,7 +290,7 @@ tau_B1_f = delta_B1_f / (eta_B1 * rho_H2)
 tau_B2_ox = delta_B2_ox / (eta_B2 * rho_O2) 
 eta_mec * m_t * tau_t = m_f * tau_B1_f + m_ox * tau_B2_ox
 
-
+Función_1 = eta_mec * m_t * tau_t - m_f * tau_B1_f - m_ox * tau_B2_ox
 
 
 ###############################################################################
@@ -324,14 +328,11 @@ print("La mezcla seleccionada en la pre-cámara es: ", Tipo_mezcla_CC)
 
 
 ###############################################################################
-# PASO 6: ECUACIÓN DEL EMPUJE                                                 #
+# PASO 6: ECUACIÓN DEL EMPUJE A NIVEL DEL MAR                                 #
 ###############################################################################
-# FALTA TODA ESTA PARTE
+
 # Valores para los próximos cálculos
-Ps_Pc_pc = P_s / pc_PC;
-Ps_Pc_cc = P_s / pc_CC;
-Pamb_Pc_pc = 101325/pc_PC; % Pa/Pa
-Pamb_Pc_cc = 101325/pc_CC;
+p_SL = 101325 # Presión al nivel del mar [Pa]
 
 # Velocidad característica
 c_PC = sqrt(Rg_PC * Tc_PC) / Gamma_gamma_PC
@@ -342,8 +343,8 @@ epsilon_PC = Gamma_gamma_PC / ((p_PC_s / pc_PC) ** (1 / gamma_PC) * sqrt(2 * gam
 epsilon_CC = Gamma_gamma_CC / ((p_CC_s / pc_CC) ** (1 / gamma_CC) * sqrt(2 * gamma_CC / (gamma_CC - 1) * (1 - (p_CC_s / pc_CC) ** ((gamma_CC - 1) / gamma_CC))))
 
 # Coeficiente de empuje
-Ce_PC = Gamma_gamma_PC * sqrt(2 * gamma_PC / (gamma_PC - 1) * (1 - (p_PC_s / pc_PC) ** ((gamma_PC - 1) / gamma_PC))) + epsilon_PC * ((p_PC_s / pc_PC) - (p_adapt / pc_PC))
-Ce_CC = Gamma_gamma_CC * sqrt(2 * gamma_CC / (gamma_CC - 1) * (1 - (p_CC_s / pc_CC) ** ((gamma_CC - 1) / gamma_CC))) + epsilon_CC * ((p_CC_s / pc_CC) - (p_adapt / pc_CC)) 
+Ce_PC = Gamma_gamma_PC * sqrt(2 * gamma_PC / (gamma_PC - 1) * (1 - (p_PC_s / pc_PC) ** ((gamma_PC - 1) / gamma_PC))) + epsilon_PC * ((p_PC_s / pc_PC) - (p_SL / pc_PC))
+Ce_CC = Gamma_gamma_CC * sqrt(2 * gamma_CC / (gamma_CC - 1) * (1 - (p_CC_s / pc_CC) ** ((gamma_CC - 1) / gamma_CC))) + epsilon_CC * ((p_CC_s / pc_CC) - (p_SL / pc_CC)) 
 
 # Empuje específico
 Isp_PC = c_PC * Ce_PC
@@ -351,7 +352,9 @@ Isp_CC = c_CC * Ce_CC
 
 
 # Ecuación del empuje
-Empuje = Isp_PC * (m_PC_f + m_PC_ox) * g_0 + Isp_CC * (m_CC_f + m_CC_ox) * g_0
+Empuje_SL = Isp_PC * (m_PC_f + m_PC_ox) * g_0 + Isp_CC * (m_CC_f + m_CC_ox) * g_0
+
+Funcion_2 = Empuje_SL  - Isp_PC * (m_PC_f + m_PC_ox) * g_0 - Isp_CC * (m_CC_f + m_CC_ox) * g_0
 
 # Empuje total
 # E = E_CC + E_PC
@@ -361,8 +364,165 @@ Empuje = Isp_PC * (m_PC_f + m_PC_ox) * g_0 + Isp_CC * (m_CC_f + m_CC_ox) * g_0
 # PASO 8: OPTIMIZACIÓN                                                        #
 ###############################################################################
 
+# Función de optimización
+
+def Optimización (OF_CC_st, OF_CC, OF_ini, paso_OF, OF_fin, x_CC, M_H2, M_O2, a, b, c, Pc_CC, pc_ini, paso_pc, pc_fin, Funcion_1, Funcion_2, M_CC_f, Ce_CC):
+    
+    for OF_CC in arange(OF_ini, OF_fin + paso_OF, paso_OF):
+        x_CC = OF_CC * M_H2 / M_O2
+        
+        if OF_CC >= OF_CC_st: # Mezcla rica
+            a = 2 * x_CC
+            b = 1 - 2 * x_CC
+            c = 0
+            Mezcla = 'Rica'
+        else: # Mezcla pobre
+            a = 1
+            b = 0
+            c = x_CC - 1 / 2
+            Mezcla = 'Pobre'
+        
+        # Iteración en Pc_CC
+        for Pc_CC in arange(pc_ini, pc_fin + paso_pc, paso_pc):
+            # Definición simbólica
+            m_CC_f, m_PC_f = symbols('m_CC_f m_PC_f')
+            Funciones = [Funcion_1, Funcion_2]
+            
+            # Resolver el sistema de ecuaciones
+            Soluciones = solve(Funciones, (m_CC_f, m_PC_f))
+            mf_CC_sol = N(Soluciones[m_CC_f])
+            pc_sol = N(Soluciones[m_PC_f])
+            
+            # Sustitución de las soluciones en cada una de las ecuaciones
+            Isp = N(((m_CC_f + m_CC_ox) * Isp_CC + m_t * Isp_PC) / (m_f + m_ox))
+            Km = N((k_ox * m_ox / m_f + k_f) / (m_ox / m_f + 1))
+            rho_p = N((m_ox / m_f + 1) / ((m_ox / m_f) / rho_O2 + 1 / rho_H2))
+            c_cc = N(c_CC)
+            Ce = N(Ce_CC)
+            MO = N(m_CC_ox + m_PC_ox)
+            MO_principal = N(m_CC_ox)
+            MO_sangrado = N(m_PC_ox)
+            MF = N(m_CC_f + m_PC_f)
+            MF_principal = N(m_CC_f)
+            MF_sangrado = N(m_PC_f)
+            
+            
+            # Resultados almacenados en una lista
+            resultados = []
+            
+            resultados.append({
+                'OF_CC': OF_CC,
+                'pc_CC': pc_CC,
+                'Isp': Isp,
+                'Km': Km,
+                'rho_p': rho_p,
+                'c_cc': c_CC,
+                'Ce': Ce,
+                'MO': MO,
+                'MO_principal': MO_principal,
+                'MO_sangrado': MO_sangrado,
+                'MF': MF,
+                'MF_principal': MF_principal,
+                'MF_sangrado': MF_sangrado
+                })
+    
+    # Retornar resultados
+    return Isp, Km, rho_p, c_CC, Ce, MO, MO_principal, MO_sangrado, MF, MF_principal, MF_sangrado
 
 
 ###############################################################################
 # PASO 9: GRÁFICAS                                                            #
 ###############################################################################
+
+# # Figura 1: Isp
+# fig1 = plt.figure(1)
+# ax1 = fig1.add_subplot(111, projection='3d')
+# ax1.plot_surface(vx, vy, Isp, cmap='viridis')
+# ax1.set_title('Isp')
+# ax1.set_xlabel('Pc [MPa]')
+# ax1.set_ylabel('O/F')
+# ax1.set_zlabel('Isp [m/s]')
+# plt.colorbar(ax1.plot_surface(vx, vy, Isp, cmap='viridis'), ax=ax1, shrink=0.5)
+
+# # Figura 2: Isp / (1 + Km)
+# fig2 = plt.figure(2)
+# ax2 = fig2.add_subplot(111, projection='3d')
+# ax2.plot_surface(vx, vy, Isp / (1 + Km), cmap='viridis')
+# ax2.set_title('Isp/(1+Km)')
+# ax2.set_xlabel('Pc [MPa]')
+# ax2.set_ylabel('O/F')
+# ax2.set_zlabel('Isp/(1+Km) [m/s]')
+# plt.colorbar(ax2.plot_surface(vx, vy, Isp / (1 + Km), cmap='viridis'), ax=ax2, shrink=0.5)
+
+# # Figura 3: Isp * rho_p
+# fig3 = plt.figure(3)
+# ax3 = fig3.add_subplot(111, projection='3d')
+# ax3.plot_surface(vx, vy, Isp * rho_p, cmap='viridis')
+# ax3.set_title('Isp*rho_m')
+# ax3.set_xlabel('Pc [MPa]')
+# ax3.set_ylabel('O/F')
+# ax3.set_zlabel('Isp*Densidad [Kg/(m^2*s)]')
+# plt.colorbar(ax3.plot_surface(vx, vy, Isp * rho_p, cmap='viridis'), ax=ax3, shrink=0.5)
+
+# # Figura 5: c*
+# fig5 = plt.figure(5)
+# ax5 = fig5.add_subplot(111, projection='3d')
+# ax5.plot_surface(vx, vy, c_estrella, cmap='viridis')
+# ax5.set_title('c*')
+# ax5.set_xlabel('Pc [MPa]')
+# ax5.set_ylabel('O/F')
+# ax5.set_zlabel('c* [m/s]')
+# plt.colorbar(ax5.plot_surface(vx, vy, c_estrella, cmap='viridis'), ax=ax5, shrink=0.5)
+
+# # Figura 6: C_empuje
+# fig6 = plt.figure(6)
+# ax6 = fig6.add_subplot(111, projection='3d')
+# ax6.plot_surface(vx, vy, C_empuje, cmap='viridis')
+# ax6.set_title('C_E')
+# ax6.set_xlabel('Pc [MPa]')
+# ax6.set_ylabel('O/F')
+# ax6.set_zlabel('C_E')
+# plt.colorbar(ax6.plot_surface(vx, vy, C_empuje, cmap='viridis'), ax=ax6, shrink=0.5)
+
+# # Figura 7: MO_principal
+# fig7 = plt.figure(7)
+# ax7 = fig7.add_subplot(111, projection='3d')
+# ax7.plot_surface(vx, vy, MO_principal, cmap='viridis')
+# ax7.set_title('Gasto Oxidante linea principal')
+# ax7.set_xlabel('Pc [MPa]')
+# ax7.set_ylabel('O/F')
+# ax7.set_zlabel('MO principal [kg/s]')
+# plt.colorbar(ax7.plot_surface(vx, vy, MO_principal, cmap='viridis'), ax=ax7, shrink=0.5)
+
+# # Figura 8: MO_sangrado
+# fig8 = plt.figure(8)
+# ax8 = fig8.add_subplot(111, projection='3d')
+# ax8.plot_surface(vx, vy, MO_sangrado, cmap='viridis')
+# ax8.set_title('Gasto Oxidante sangrado')
+# ax8.set_xlabel('Pc [MPa]')
+# ax8.set_ylabel('O/F')
+# ax8.set_zlabel('MO sangrado [kg/s]')
+# plt.colorbar(ax8.plot_surface(vx, vy, MO_sangrado, cmap='viridis'), ax=ax8, shrink=0.5)
+
+# # Figura 9: MF_sangrado
+# fig9 = plt.figure(9)
+# ax9 = fig9.add_subplot(111, projection='3d')
+# ax9.plot_surface(vx, vy, MF_sangrado, cmap='viridis')
+# ax9.set_title('Gasto Fuel sangrado')
+# ax9.set_xlabel('Pc [MPa]')
+# ax9.set_ylabel('O/F')
+# ax9.set_zlabel('MF sangrado [kg/s]')
+# plt.colorbar(ax9.plot_surface(vx, vy, MF_sangrado, cmap='viridis'), ax=ax9, shrink=0.5)
+
+# # Figura 10: MF_principal
+# fig10 = plt.figure(10)
+# ax10 = fig10.add_subplot(111, projection='3d')
+# ax10.plot_surface(vx, vy, MF_principal, cmap='viridis')
+# ax10.set_title('Gasto Fuel linea principal')
+# ax10.set_xlabel('Pc [MPa]')
+# ax10.set_ylabel('O/F')
+# ax10.set_zlabel('MF principal [kg/s]')
+# plt.colorbar(ax10.plot_surface(vx, vy, MF_principal, cmap='viridis'), ax=ax10, shrink=0.5)
+
+# # Mostrar todas las figuras
+# plt.show()
