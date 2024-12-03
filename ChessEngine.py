@@ -23,7 +23,7 @@ class GameState:
             ["wp", "wp", "wp", "wp", "wp", "wp", "wp", "wp"],
             ["wR", "wN", "wB", "wQ", "wK", "wB", "wN", "wR"]]
         self.moveFunctions = {"p": self.getPawnMoves, "R": self.getRookMoves, "N": self.getKnightMoves,
-                              "B": self.getBishopMoves, "Q": self.getQueenMoves, "K": self.getKingMoves}
+                                "B": self.getBishopMoves, "Q": self.getQueenMoves, "K": self.getKingMoves}
         self.white_to_move = True
         self.move_log = []
         self.white_king_location = (7, 4)
@@ -37,7 +37,7 @@ class GameState:
         self.enpassant_possible_log = [self.enpassant_possible]
         self.current_castling_rights = CastleRights(True, True, True, True)
         self.castle_rights_log = [CastleRights(self.current_castling_rights.wks, self.current_castling_rights.bks,
-                                               self.current_castling_rights.wqs, self.current_castling_rights.bqs)]
+                                                self.current_castling_rights.wqs, self.current_castling_rights.bqs)]
 
     def makeMove(self, move):
         """
@@ -88,7 +88,7 @@ class GameState:
         # update castling rights - whenever it is a rook or king move
         self.updateCastleRights(move)
         self.castle_rights_log.append(CastleRights(self.current_castling_rights.wks, self.current_castling_rights.bks,
-                                                   self.current_castling_rights.wqs, self.current_castling_rights.bqs))
+                                                    self.current_castling_rights.wqs, self.current_castling_rights.bqs))
 
     def undoMove(self):
         """
@@ -166,7 +166,7 @@ class GameState:
         All moves considering checks.
         """
         temp_castle_rights = CastleRights(self.current_castling_rights.wks, self.current_castling_rights.bks,
-                                          self.current_castling_rights.wqs, self.current_castling_rights.bqs)
+                                        self.current_castling_rights.wqs, self.current_castling_rights.bqs)
         # advanced algorithm
         moves = []
         self.in_check, self.pins, self.checks = self.checkForPinsAndChecks()
@@ -567,10 +567,10 @@ class Move:
     # and the second one being a letter between a-f (corresponding to columns), in order to use this notation we need to map our [row][col] coordinates
     # to match the ones used in the original chess game
     ranks_to_rows = {"1": 7, "2": 6, "3": 5, "4": 4,
-                     "5": 3, "6": 2, "7": 1, "8": 0}
+                    "5": 3, "6": 2, "7": 1, "8": 0}
     rows_to_ranks = {v: k for k, v in ranks_to_rows.items()}
     files_to_cols = {"a": 0, "b": 1, "c": 2, "d": 3,
-                     "e": 4, "f": 5, "g": 6, "h": 7}
+                    "e": 4, "f": 5, "g": 6, "h": 7}
     cols_to_files = {v: k for k, v in files_to_cols.items()}
 
     def __init__(self, start_square, end_square, board, is_enpassant_move=False, is_castle_move=False):
