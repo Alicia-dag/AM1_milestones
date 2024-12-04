@@ -8,14 +8,20 @@ import ChessEngine, ChessAI
 import sys
 from multiprocessing import Process, Queue
 
-BOARD_WIDTH = BOARD_HEIGHT = 512          # 600x600 pixels
-MOVE_LOG_PANEL_WIDTH = 250                # Width of the move log panel
-MOVE_LOG_PANEL_HEIGHT = BOARD_HEIGHT      # Square size
-DIMENSION = 8                             # 8x8 board
-SQUARE_SIZE = BOARD_HEIGHT // DIMENSION   # Size of each square
-MAX_FPS = 15                              # For animations
-IMAGES = {}                               # Global dictionary of images
+from os import environ
+environ['PYGAME_HIDE_SUPPORT_PROMPT'] = '1' # So that the pygame welcome message does not appear
 
+
+BOARD_WIDTH = BOARD_HEIGHT = 512            # 600x600 pixels
+MOVE_LOG_PANEL_WIDTH = 250                  # Width of the move log panel
+MOVE_LOG_PANEL_HEIGHT = BOARD_HEIGHT        # Square size
+DIMENSION = 8                               # 8x8 board
+SQUARE_SIZE = BOARD_HEIGHT // DIMENSION     # Size of each square
+MAX_FPS = 15                                # For animations
+IMAGES = {}                                 # Global dictionary of images
+
+import tkinter as tk       # Imports tkinter module
+from tkinter import ttk    # Imports ttk from tkinter
 
 
 
@@ -33,6 +39,75 @@ def loadImages(): # Load images only once
     pieces = ['wp', 'wR', 'wN', 'wB', 'wK', 'wQ', 'bp', 'bR', 'bN', 'bB', 'bK', 'bQ'] # Piece names to load
     for piece in pieces: 
         IMAGES[piece] = p.transform.scale(p.image.load("images/" + piece + ".png"), (SQUARE_SIZE, SQUARE_SIZE)) # Load and scale images
+
+
+
+#######################################################################################################
+##                                           GUI                                                     ##
+#######################################################################################################
+def GUI():
+    # Crear la ventana principal
+    ventana = tk.Tk() # CREA EL CUADRADO
+    ventana.title("Configuración del Juego") # PONE EL TÍTULO
+    ventana.geometry("600x300") # DA EL TAMAÑO DEL CUADRADO (ANCHO X ALTO)
+    ventana.configure(bg="#f0f0f0")  # Color de fondo suave
+
+    # Crear un contenedor para agrupar los elementos
+    contenedor = ttk.Frame(ventana) # AÑADE EL WIDGET FRAME
+    #contenedor.pack(padx=10, pady=10)
+    contenedor.pack(fill=tk.BOTH, expand=True)
+
+    # Estilo para los labels y opciones
+    estilo = ttk.Style()
+    estilo.configure("TLabel", font=("Helvetica", 12, "bold"), foreground="#4287f5")  # Azul principal
+    estilo.configure("TMenubutton", font=("Helvetica", 11), background="#f0f0f0")  # Gris claro
+
+    # Crear las opciones para cada lista desplegable
+    opciones_jugadores1 = ["Jugador", "Jugador", "CPU"]
+    opciones_jugadores2 = ["CPU", "Jugador", "CPU"]
+    opciones_dificultad = [0, 0, 1, 2, 3, 4]
+
+    # Crear las variables para almacenar las selecciones
+    variable_blancas = tk.StringVar(ventana)
+    #variable_blancas.set("Jugador")
+    variable_negras = tk.StringVar(ventana)
+    #variable_negras.set("CPU")
+    variable_nivel = tk.IntVar(ventana)
+    #variable_nivel.set(0)
+
+    # Crear las listas desplegables con sus títulos
+    ttk.Label(contenedor, text="Blancas:", style="TLabel").pack()
+    def actualizar_blancas(valor):
+        variable_blancas.set(valor)
+    lista_desplegable_blancas = ttk.OptionMenu(contenedor, variable_blancas, *opciones_jugadores1, command=actualizar_blancas)
+    lista_desplegable_blancas.pack()
+
+    ttk.Label(contenedor, text="Negras:", style="TLabel").pack()
+    def actualizar_negras(valor):
+        variable_negras.set(valor)
+    lista_desplegable_negras = ttk.OptionMenu(contenedor, variable_negras, *opciones_jugadores2, command=actualizar_negras)
+    lista_desplegable_negras.pack()
+
+    ttk.Label(contenedor, text="Nivel:", style="TLabel").pack()
+    def actualizar_nivel(valor):
+        variable_nivel.set(valor)
+    lista_desplegable_nivel = ttk.OptionMenu(contenedor, variable_nivel, *opciones_dificultad, command=actualizar_nivel)
+    lista_desplegable_nivel.pack()
+
+    # Botón para cerrar la ventana
+    boton_cerrar = ttk.Button(contenedor, text="Iniciar Juego", style="TButton",
+                            command=lambda: [print(f"Blancas: {variable_blancas.get()}"), 
+                                                                                print(f"Negras: {variable_negras.get()}"),
+                                                                                print(f"Nivel: {variable_nivel.get()}"),
+                                                                                ventana.destroy()])
+    boton_cerrar.pack(pady=10)
+
+    # Iniciar el bucle principal de la aplicación
+    ventana.mainloop()
+
+    return variable_blancas.get(), variable_negras.get(), variable_nivel.get()
+
+
 
 
 
@@ -86,7 +161,7 @@ def main():
                         move = ChessEngine.Move(player_clicks[0], player_clicks[1], game_state.board)           # Create a move object
                         for i in range(len(valid_moves)):                                                       # Check if the move is valid
                             if move == valid_moves[i]:                                                          # IIF IT IS VALID
-                                game_state.makeMove(valid_moves[i])                                                 # Make the move
+                                game_state.makeMove(valid_moves[i], j=1)                                                 # Make the move
                                 move_made = True                                                                    # Move is made
                                 animate = True                                                                      # Animate the move
                                 square_selected = ()                                                                # Reset the square selected
@@ -234,11 +309,11 @@ def drawPieces(screen, board):
     """
     Draw the pieces on the board using the current game_state.board
     """
-    for row in range(DIMENSION): 
+    for row in range(DIMENSION):
         for column in range(DIMENSION):
-            piece = board[row][column]                                                                                # Get the piece
-            if piece != "--":                                                                                         # If the piece is not empty
-                screen.blit(IMAGES[piece], p.Rect(column * SQUARE_SIZE, row * SQUARE_SIZE, SQUARE_SIZE, SQUARE_SIZE)) # Draw the piece
+            piece = board[row][column]
+            if piece != "--":
+                screen.blit(IMAGES[piece], p.Rect(column * SQUARE_SIZE, row * SQUARE_SIZE, SQUARE_SIZE, SQUARE_SIZE))
 
 
 
@@ -332,4 +407,8 @@ def animateMove(move, screen, board, clock):
 #######################################################################################################
 
 if __name__ == "__main__": # Call the main function
-    main() 
+    i =+1
+    if i == 1:
+        P1E, P2E, nivel = GUI()
+    
+    main()

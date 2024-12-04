@@ -4,6 +4,10 @@ Determining valid moves at current state.
 It will keep move log.
 """
 
+import tkinter as tk    # Imports the tkinter module
+from tkinter import ttk # Imports the ttk module
+
+
 #######################################################################################################
 #######################################################################################################
 ##                                            GAME STATE                                             ##
@@ -50,38 +54,84 @@ class GameState:
                                                 self.current_castling_rights.wqs, self.current_castling_rights.bqs)]
     
     
+    
+    ###################################################################################################
+    ##                                 GUI FOR CORONATION                                            ##
+    ###################################################################################################
+    
+    def GUICorona():
+        # Creation of the GUI for the coronation of the pawn
+        ventana = tk.Tk()                                                                    # Creation of the window
+        ventana.title("Elige tu nueva pieza")                                                # Set the title of the window
+        ventana.geometry("600x300")                                                          # Geometry of the window
+        ventana.configure(bg="#f0f0f0")                                                      # Color of the window
+        
+        # Creation of the container
+        contenedor = ttk.Frame(ventana)                                                      # Widget that will contain the rest of the widgets
+        contenedor.pack(fill=tk.BOTH, expand=True)
+        
+        # Style for the labels and buttons
+        estilo = ttk.Style()
+        estilo.configure("TLabel", font=("Helvetica", 12, "bold"), foreground="#4287f5")     # Principal color
+        estilo.configure("TMenubutton", font=("Helvetica", 11), background="#f0f0f0")        # Color of the dropdown menu
+        
+        
+        opciones_corona = ["Q", "Q", "R", "B", "N"]                                          # List of options for the dropdown menu
+        
+        variable_corona = tk.StringVar(ventana)                                              # Variable that will store the value of the dropdown menu
+        
+        # Creation of the label
+        ttk.Label(contenedor, text="Nueva pieza:", style="TLabel").pack()
+        def actualizar_corona(valor):
+            variable_corona.set(valor)
+        lista_desplegable_corona = ttk.OptionMenu(contenedor, variable_corona, *opciones_corona, command=actualizar_corona)
+        lista_desplegable_corona.pack()
+        
+
+        # Button to close the window
+        boton_cerrar = ttk.Button(contenedor, text="Coronar pieza", style="TButton",
+                                command=lambda: [print(f"Nueva pieza: {variable_corona.get()}"),
+                                                                                    ventana.destroy()])
+        boton_cerrar.pack(pady=10)
+        
+        # Inizialize the GUI
+        ventana.mainloop()
+        
+        return variable_corona.get()
+    
+    
     ###################################################################################################
     ##                                      MAKE A MOVE                                              ##
     ###################################################################################################
-    def makeMove(self, move):
+    def makeMove(self, move, j):
         """
         Takes a Move as a parameter and executes it.
         (this will not work for castling, pawn promotion and en-passant)
         """
-        self.board[move.start_row][move.start_col] = "--"
-        self.board[move.end_row][move.end_col] = move.piece_moved
-        self.move_log.append(move)  # log the move so we can undo it later
+        self.board[move.start_row][move.start_col] = "--" # Takes the piece from the initial position
+        self.board[move.end_row][move.end_col] = move.piece_moved # Sets the piece in the final position
+        self.move_log.append(move)  # log the move so we can undo it later # guarda el movimiento para poder deshacerlo
         self.white_to_move = not self.white_to_move  # switch players
         # update king's location if moved
         if move.piece_moved == "wK":
-            self.white_king_location = (move.end_row, move.end_col)
-        elif move.piece_moved == "bK":
-            self.black_king_location = (move.end_row, move.end_col)
+            self.white_king_location = (move.end_row, move.end_col) # Moves the white king
+            self.black_king_location = (move.end_row, move.end_col) # Moves the black king
 
         # pawn promotion
-        if move.is_pawn_promotion:
-            # if not is_AI:
-            #    promoted_piece = input("Promote to Q, R, B, or N:") #take this to UI later
-            #    self.board[move.end_row][move.end_col] = move.piece_moved[0] + promoted_piece
-            # else:
-            self.board[move.end_row][move.end_col] = move.piece_moved[0] + "Q"
+        if move.is_pawn_promotion: # HAY QUE METERLE QUE PUEDA ELEGIR!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+            if j == 1:
+                promoted_piece = GameState.GUICorona()
+                #promoted_piece = input("Promote to Q, R, B, or N:") #take this to UI later
+                self.board[move.end_row][move.end_col] = move.piece_moved[0] + promoted_piece
+            else:
+                self.board[move.end_row][move.end_col] = move.piece_moved[0] + "Q"
 
         # enpassant move
         if move.is_enpassant_move:
-            self.board[move.start_row][move.end_col] = "--"  # capturing the pawn
+            self.board[move.start_row][move.end_col] = "--"  # capturing the pawn, function to remove the pawn
 
         # update enpassant_possible variable
-        if move.piece_moved[1] == "p" and abs(move.start_row - move.end_row) == 2:  # only on 2 square pawn advance
+        if move.piece_moved[1] == "p" and abs(move.start_row - move.end_row) == 2:  # only on 2 square pawn advance # si la pieza movida es un peón, y ha movido dos casillas, dar posibilidad de enpassant
             self.enpassant_possible = ((move.start_row + move.end_row) // 2, move.start_col)
         else:
             self.enpassant_possible = ()
@@ -89,21 +139,19 @@ class GameState:
         # castle move
         if move.is_castle_move:
             if move.end_col - move.start_col == 2:  # king-side castle move
-                self.board[move.end_row][move.end_col - 1] = self.board[move.end_row][
-                    move.end_col + 1]  # moves the rook to its new square
+                self.board[move.end_row][move.end_col - 1] = self.board[move.end_row][move.end_col + 1]  # moves the rook to its new square
                 self.board[move.end_row][move.end_col + 1] = '--'  # erase old rook
             else:  # queen-side castle move
-                self.board[move.end_row][move.end_col + 1] = self.board[move.end_row][
-                    move.end_col - 2]  # moves the rook to its new square
+                self.board[move.end_row][move.end_col + 1] = self.board[move.end_row][move.end_col - 2]  # moves the rook to its new square
                 self.board[move.end_row][move.end_col - 2] = '--'  # erase old rook
 
         self.enpassant_possible_log.append(self.enpassant_possible)
 
-        # update castling rights - whenever it is a rook or king move
+        # update castling rights - whenever it is a rook or king move, if it is a rook move from the corner, if it is a king move, it is not possible to castle
         self.updateCastleRights(move)
         self.castle_rights_log.append(CastleRights(self.current_castling_rights.wks, self.current_castling_rights.bks,
                                                     self.current_castling_rights.wqs, self.current_castling_rights.bqs))
-    
+
     
     ###################################################################################################
     ##                                          UNDO A MOVE                                          ##

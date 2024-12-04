@@ -39,6 +39,7 @@ class GameState:
         self.current_castling_rights = CastleRights(True, True, True, True)
         self.castle_rights_log = [CastleRights(self.current_castling_rights.wks, self.current_castling_rights.bks,
                                                self.current_castling_rights.wqs, self.current_castling_rights.bqs)]
+        self.contador = 0
 
     def GUICorona():
         # Crear la ventana principal
@@ -91,6 +92,9 @@ class GameState:
         self.board[move.start_row][move.start_col] = "--" # Quita la pieza de la posición inicial en la que estaba
         self.board[move.end_row][move.end_col] = move.piece_moved # Pone la pieza en la posición final a la que va
         self.move_log.append(move)  # log the move so we can undo it later # guarda el movimiento para poder deshacerlo
+        if move.is_capture == True:
+            self.contador = 0
+        self.contador += 1
         self.white_to_move = not self.white_to_move  # switch players
         # update king's location if moved
         if move.piece_moved == "wK":
@@ -99,10 +103,9 @@ class GameState:
             self.black_king_location = (move.end_row, move.end_col) # Mueve el rey negro
 
         # pawn promotion
-        if move.is_pawn_promotion: # HAY QUE METERLE QUE PUEDA ELEGIR!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        if move.is_pawn_promotion: 
             if j == 1:
                promoted_piece = GameState.GUICorona()
-               #promoted_piece = input("Promote to Q, R, B, or N:") #take this to UI later
                self.board[move.end_row][move.end_col] = move.piece_moved[0] + promoted_piece
             else:
                 self.board[move.end_row][move.end_col] = move.piece_moved[0] + "Q"
@@ -139,6 +142,7 @@ class GameState:
         """
         if len(self.move_log) != 0:  # make sure that there is a move to undo # No puedes deshacer un movimiento si no hay movimientos
             move = self.move_log.pop()
+            self.contador -= 1
             self.board[move.start_row][move.start_col] = move.piece_moved # Deshace el movimiento el movimiento de la pieza movida
             self.board[move.end_row][move.end_col] = move.piece_captured # Vuelve a poner la pieza si ha sido comida en el último movimiento
             self.white_to_move = not self.white_to_move  # swap players
@@ -261,6 +265,8 @@ class GameState:
             else:
                 # TODO stalemate on repeated moves
                 self.stalemate = True
+        elif self.contador == 100:
+            self.stalemate = True
         else:
             self.checkmate = False
             self.stalemate = False
@@ -635,6 +641,7 @@ class Move:
 
         self.is_capture = self.piece_captured != "--"
         self.moveID = self.start_row * 1000 + self.start_col * 100 + self.end_row * 10 + self.end_col
+
 
     def __eq__(self, other):
         """

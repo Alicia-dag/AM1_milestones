@@ -7,9 +7,9 @@ import pygame as p
 import ChessEngine, ChessAI
 import sys
 from multiprocessing import Process, Queue
+import threading
 
 from os import environ
-import threading
 environ['PYGAME_HIDE_SUPPORT_PROMPT'] = '1' # Para que no salga todo el rato el cartel de "Hello from the pygame community"
 
 BOARD_WIDTH = BOARD_HEIGHT = 800 #512 # Tamaño del tablero (se ajusta solo las piezas)
@@ -353,6 +353,8 @@ def animateMove(move, screen, board, clock):
 
 
 
+
+
 class CountdownClock:
     def __init__(self, root, countdown_time):
         self.root = root
@@ -388,26 +390,26 @@ class CountdownClock:
         if self.running:  # Si se reanuda, actualizar el reloj
             self.update_clock()
 
-
-            def start_countdown_clock():
+            # Ensure the countdown clock GUI appears in front of the chess board GUI
+            def showCountdownClock():
+                root = tk.Tk()
+                root.title("Reloj de Cuenta Atrás")
                 countdown_time = 60  # Tiempo inicial en segundos (por ejemplo, 1 minuto)
-                clock_window = tk.Toplevel()
-                clock_window.title("Reloj de Cuenta Atrás")
-                app = CountdownClock(clock_window, countdown_time)
-                clock_window.mainloop()
+                app = CountdownClock(root, countdown_time)
+                root.mainloop()
 
-            # Start the countdown clock in a separate thread
-            clock_thread = threading.Thread(target=start_countdown_clock)
+            # Start the countdown clock GUI in a separate thread
+            clock_thread = threading.Thread(target=showCountdownClock)
             clock_thread.start()
-
 
 if __name__ == "__main__":
     i =+1
     if i == 1:
         P1E, P2E, nivel = GUI()
 
-    
-
+        # Start the main game loop in a separate thread
+        game_thread = threading.Thread(target=main)
+        game_thread.start()
     root = tk.Tk()
     root.title("Reloj de Cuenta Atrás")
     countdown_time = 60  # Tiempo inicial en segundos (por ejemplo, 1 minuto)

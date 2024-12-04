@@ -3,6 +3,10 @@ Handling the AI moves.
 """
 import random
 
+import tkinter as tk    # Imports the tkinter module
+from tkinter import ttk # Imports the ttk module
+
+
 piece_score = {"K": 0, "Q": 9, "R": 5, "B": 3, "N": 3, "p": 1}   # The value of each piece
 
 
@@ -84,7 +88,7 @@ piece_position_scores = {"wN": knight_scores,
 
 CHECKMATE = 1000   # White wins
 STALEMATE = 0      # Draw
-DEPTH = 5          # How many moves ahead the AI should look: AI LEVEL (if too big it will take too long to calculate)
+# DEPTH = 5          # How many moves ahead the AI should look: AI LEVEL (if too big it will take too long to calculate)
 
 
 
@@ -92,39 +96,39 @@ DEPTH = 5          # How many moves ahead the AI should look: AI LEVEL (if too b
 ##                                       FIND THE BEST MOVE                                          ##
 #######################################################################################################
 
-def findBestMove(game_state, valid_moves, return_queue):
+def findBestMove(game_state, valid_moves, return_queue, depthAux):
     global next_move
     next_move = None                                                                  # Next move to be made
     random.shuffle(valid_moves)                                                       # Randomize the valid moves
-    findMoveNegaMaxAlphaBeta(game_state, valid_moves, DEPTH, -CHECKMATE, CHECKMATE,
-                            1 if game_state.white_to_move else -1)                    # Find the best move
+    findMoveNegaMaxAlphaBeta(game_state, valid_moves, depthAux, -CHECKMATE, CHECKMATE, 1 if game_state.white_to_move else -1, depthAux)
     return_queue.put(next_move)                                                       # Put the best move in the queue
+
 
 
 #######################################################################################################
 ##                                      PIECE SQUARE TABLES                                         ##
 #######################################################################################################
 
-def findMoveNegaMaxAlphaBeta(game_state, valid_moves, depth, alpha, beta, turn_multiplier):
+def findMoveNegaMaxAlphaBeta(game_state, valid_moves, depth, alpha, beta, turn_multiplier, depthaux):
     global next_move
-    if depth == 0:                                                                                             # Base case
-        return turn_multiplier * scoreBoard(game_state)                                                        # Return the score
+    if depth == 0:                                                                                                       # Base case
+        return turn_multiplier * scoreBoard(game_state)                                                                  # Return the score
     # move ordering - implement later //TODO
-    max_score = -CHECKMATE                                                                                     # Initialize the max score
-    for move in valid_moves:                                                                                   # Loop through the valid moves
-        game_state.makeMove(move)                                                                              # Make the move
-        next_moves = game_state.getValidMoves()                                                                # Get the next moves
-        score = -findMoveNegaMaxAlphaBeta(game_state, next_moves, depth - 1, -beta, -alpha, -turn_multiplier)  # Recursively call the function
-        if score > max_score:                                                                                  # Turn maximizing player
-            max_score = score                                                                                  # Update the max score
-            if depth == DEPTH:
-                next_move = move                                                                               # Update the next move
-        game_state.undoMove()                                                                                  # Undo the move
-        if max_score > alpha:                                                                                  # Update the alpha value
-            alpha = max_score                                                                                  # Update the alpha value
-        if alpha >= beta:                                                                                      # Prune the tree
-            break                                                                                              # Break the loop
-    return max_score                                                                                           # Return the max score
+    max_score = -CHECKMATE                                                                                               # Initialize the max score
+    for move in valid_moves:                                                                                             # Loop through the valid moves
+        game_state.makeMove(move, j=0)                                                                                   # Make the move
+        next_moves = game_state.getValidMoves()                                                                          # Get the next moves
+        score = -findMoveNegaMaxAlphaBeta(game_state, next_moves, depth - 1, -beta, -alpha, -turn_multiplier, depthaux)  # Recursively call the function
+        if score > max_score:                                                                                            # Turn maximizing player
+            max_score = score                                                                                            # Update the max score
+            if depth == depthaux:                                                                                        # If we are at the root node
+                next_move = move                                                                                         # Update the next move
+        game_state.undoMove()                                                                                            # Undo the move
+        if max_score > alpha:                                                                                            # Update the alpha value
+            alpha = max_score                                                                                            # Update the alpha value
+        if alpha >= beta:                                                                                                # Prune the tree
+            break                                                                                                        # Break the loop
+    return max_score                                                                                                     # Return the max score
 
 
 
