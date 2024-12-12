@@ -356,7 +356,7 @@ def animateMove(move, screen, board, clock):
 
 
 class CountdownClock:
-    def __init__(self, root, countdown_time):
+    def __init__(self, root, countdown_time): # Constructor de la clase
         self.root = root
         self.time_left = countdown_time  # Tiempo inicial en segundos
         self.running = True  # Indica si el reloj está funcionando
@@ -370,30 +370,30 @@ class CountdownClock:
 
         self.update_clock()
 
-    def format_time(self, seconds):
+    def format_time(self, seconds): # Pasa de segundos a minutos y segundos
         """Formatea los segundos como MM:SS."""
         minutes, seconds = divmod(seconds, 60)
         return f"{minutes:02}:{seconds:02}"
 
-    def update_clock(self):
+    def update_clock(self): # Actualiza el reloj
         """Actualiza el temporizador cada segundo."""
-        if self.running and self.time_left > 0:
-            self.time_left -= 1
-            self.label.config(text=self.format_time(self.time_left))
+        if self.running and self.time_left > 0: # Si el temporizador está en funcionamiento y no ha terminado
+            self.time_left -= 1 # Resta 1 segundo
+            self.label.config(text=self.format_time(self.time_left)) # Actualiza la etiqueta con el tiempo restante
             self.root.after(1000, self.update_clock)  # Llama a esta función en 1 segundo
-        elif self.time_left == 0:
-            self.label.config(text="¡Tiempo terminado!")
+        elif self.time_left == 0: # Si el tiempo ha terminado
+            self.label.config(text="¡Tiempo terminado!") # Muestra un mensaje
 
-    def toggle(self):
+    def toggle(self): # Activa o pausa el temporizador
         """Activa o pausa el temporizador."""
-        self.running = not self.running
+        self.running = not self.running # Cambia el estado del temporizador
         if self.running:  # Si se reanuda, actualizar el reloj
-            self.update_clock()
+            self.update_clock() # Actualiza el reloj
 
             # Ensure the countdown clock GUI appears in front of the chess board GUI
-            def showCountdownClock():
-                root = tk.Tk()
-                root.title("Reloj de Cuenta Atrás")
+            def showCountdownClock(): # Muestra el reloj de cuenta atrás
+                root = tk.Tk() # Crea una nueva ventana
+                root.title("Reloj de Cuenta Atrás") # Pone el título de la ventana
                 countdown_time = 60  # Tiempo inicial en segundos (por ejemplo, 1 minuto)
                 app = CountdownClock(root, countdown_time)
                 root.mainloop()

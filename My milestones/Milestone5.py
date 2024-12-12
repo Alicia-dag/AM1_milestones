@@ -139,12 +139,10 @@ plt.grid()
 plt.show()
 
 # Representacion de resultados (en 3 dimensiones)
-Us = reshape(U, (Nb, Nc, 2, N+1))
-r = reshape(Us[:, :, 0, :], (Nb, Nc, N+1))
 fig = plt.figure()
 ax = fig.add_subplot(111, projection='3d')
 for i in range(Nb):
-    ax.plot3D(r[i, 0, :], r[i, 1, :], r[i, 2, :], label=f'Cuerpo {i+1}')
+    ax.plot3D(r[:, i, 0], r[:, i, 1], r[:, i, 2], label=f'Cuerpo {i+1}')
 ax.set_xlabel('X')
 ax.set_ylabel('Y')
 ax.set_zlabel('Z')
