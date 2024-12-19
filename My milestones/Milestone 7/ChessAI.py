@@ -3,10 +3,6 @@ Handling the AI moves.
 """
 import random
 
-import tkinter as tk # Importa el módulo tkinter y le asigna el alias tk
-from tkinter import ttk # importa el submódulo ttk desde tkinter
-
-
 piece_score = {"K": 0, "Q": 9, "R": 5, "B": 3, "N": 3, "p": 1}
 
 knight_scores = [[0.0, 0.1, 0.2, 0.2, 0.2, 0.2, 0.1, 0.0],
@@ -67,18 +63,25 @@ piece_position_scores = {"wN": knight_scores,
 
 CHECKMATE = 1000
 STALEMATE = 0
-#DEPTH = 4
 
 
-def findBestMove(game_state, valid_moves, return_queue, depthAux):
+
+
+
+def findBestMove(game_state, valid_moves, return_queue, depth_aux):
+    """
+    Method that finds the best move using the algorithm and adds it to a list 
+    """
     global next_move
     next_move = None
-    random.shuffle(valid_moves)
-    findMoveNegaMaxAlphaBeta(game_state, valid_moves, depthAux, -CHECKMATE, CHECKMATE, 1 if game_state.white_to_move else -1, depthAux)
+    findMoveNegaMaxAlphaBeta(game_state, valid_moves, depth_aux, -CHECKMATE,
+                             CHECKMATE, 1 if game_state.white_to_move else -1, depth_aux)
     return_queue.put(next_move)
 
-
-def findMoveNegaMaxAlphaBeta(game_state, valid_moves, depth, alpha, beta, turn_multiplier, depthaux):
+def findMoveNegaMaxAlphaBeta(game_state,valid_moves,depth,alpha,beta,turn_multiplier,depth_aux):
+    """
+    NegaMax algorithm that finds the best move, optimized with alpha-beta pruning
+    """
     global next_move
     if depth == 0:
         return turn_multiplier * scoreBoard(game_state)
@@ -87,10 +90,11 @@ def findMoveNegaMaxAlphaBeta(game_state, valid_moves, depth, alpha, beta, turn_m
     for move in valid_moves:
         game_state.makeMove(move, j=0)
         next_moves = game_state.getValidMoves()
-        score = -findMoveNegaMaxAlphaBeta(game_state, next_moves, depth - 1, -beta, -alpha, -turn_multiplier, depthaux)
+        score = -findMoveNegaMaxAlphaBeta(game_state, next_moves, depth - 1,
+                                          -beta, -alpha, -turn_multiplier, depth_aux)
         if score > max_score:
             max_score = score
-            if depth == depthaux:
+            if depth == depth_aux:
                 next_move = move
         game_state.undoMove()
         if max_score > alpha:
@@ -107,18 +111,16 @@ def scoreBoard(game_state):
     if game_state.checkmate:
         if game_state.white_to_move:
             return -CHECKMATE  # black wins
-        else:
-            return CHECKMATE  # white wins
-    elif game_state.stalemate:
+        return CHECKMATE  # white wins
+    if game_state.stalemate:
         return STALEMATE
     score = 0
-    for row in range(len(game_state.board)):
-        for col in range(len(game_state.board[row])):
-            piece = game_state.board[row][col]
+    for row_idx, row in enumerate(game_state.board):
+        for col_idx, piece in enumerate(row):
             if piece != "--":
                 piece_position_score = 0
                 if piece[1] != "K":
-                    piece_position_score = piece_position_scores[piece][row][col]
+                    piece_position_score = piece_position_scores[piece][row_idx][col_idx]
                 if piece[0] == "w":
                     score += piece_score[piece[1]] + piece_position_score
                 if piece[0] == "b":
